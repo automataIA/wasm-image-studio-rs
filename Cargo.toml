@@ -1,0 +1,66 @@
+[package]
+name = "wasm-image-studio-rs"
+version = "0.1.0"
+edition = "2021"
+authors = ["dio"]
+
+[dependencies]
+leptos = { version = "0.8", features = ["csr", "nightly"] }
+leptos_meta = { version = "0.8" }
+leptos_router = { version = "0.8", features = ["nightly"] }
+console_log = "1"
+log = "0.4"
+console_error_panic_hook = "0.1"
+wasm-bindgen = "0.2"
+
+# Image processing dependencies
+photon-rs = { version = "0.3", features = ["enable_wasm"] }
+js-sys = "0.3"
+gloo-timers = "0.3"
+once_cell = "1.18"
+serde = { version = "1.0", features = ["derive"] }
+serde-wasm-bindgen = "0.5"
+wasm-bindgen-futures = "0.4"
+
+# Solo Tailwind Fuse per classi dinamiche (nome corretto)
+tailwind_fuse = "0.3"
+
+# Web APIs
+web-sys = { version = "0.3", features = [
+    "CanvasRenderingContext2d",
+    "Document",
+    "Element",
+    "HtmlCanvasElement",
+    "HtmlElement",
+    "Window",
+    "File",
+    "FileList",
+    "FileReader",
+    "Blob",
+    "BlobPropertyBag",
+    "Url",
+    "HtmlImageElement",
+    "ImageData",
+    "Performance",
+    "PerformanceTiming",
+    "DragEvent",
+    "DataTransfer",
+    "DomRect",
+    "CssStyleDeclaration",
+    "EventTarget",
+    "HtmlInputElement",
+    "HtmlAnchorElement",
+    "MouseEvent",
+    "DomTokenList",
+] }
+
+[dev-dependencies]
+wasm-bindgen = "0.2"
+wasm-bindgen-test = "0.3"
+web-sys = { version = "0.3", features = ["Document", "Window"] }
+
+[profile.release]
+opt-level = 'z'
+lto = true
+codegen-units = 1
+panic = "abort"

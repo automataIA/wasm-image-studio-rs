@@ -1,0 +1,11 @@
+/target
+/dist
+/info
+# Trunk build output
+dist/
+
+# Node modules (if using npm)
+node_modules/
+
+# Generated CSS files from Tailwind (if using hook)
+tailwind.css
