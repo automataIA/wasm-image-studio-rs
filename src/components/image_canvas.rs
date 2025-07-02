@@ -5,6 +5,40 @@ use std::panic;
 use wasm_bindgen::{prelude::*, JsCast};
 use web_sys::{CanvasRenderingContext2d, HtmlCanvasElement, HtmlImageElement};
 
+// Helper function for logging to console
+fn log_to_console(message: &str) {
+    web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(message));
+}
+
+// Function to safely draw image on canvas with error handling
+fn draw_image_on_canvas(canvas: &HtmlCanvasElement, img: &HtmlImageElement) -> Result<(), JsValue> {
+    log_to_console("Starting to draw on canvas...");
+
+    // Ensure canvas has valid dimensions
+    if canvas.width() == 0 || canvas.height() == 0 {
+        log_to_console("Error: Invalid canvas dimensions");
+        return Err(JsValue::from_str("Invalid canvas dimensions"));
+    }
+
+    // Get 2D context with error handling
+    let ctx = match canvas.get_context("2d") {
+        Ok(Some(ctx)) => ctx.dyn_into::<web_sys::CanvasRenderingContext2d>()?,
+        _ => {
+            log_to_console("Error: Could not get 2D context");
+            return Err(JsValue::from_str("Could not get 2D context"));
+        }
+    };
+
+    // Clear canvas
+    ctx.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
+
+    // Draw image
+    ctx.draw_image_with_html_image_element(img, 0.0, 0.0)?;
+    log_to_console("Image drawn successfully");
+
+    Ok(())
+}
+
 #[allow(non_snake_case)]
 #[component]
 pub fn ImageCanvas(
@@ -63,9 +97,7 @@ pub fn ImageCanvas(
                             }
                         }
                     } else {
-                        web_sys::console::log_1(
-                            &"⏳ Canvas not yet fully mounted, waiting...".into(),
-                        );
+                        log_to_console("⏳ Canvas not yet fully mounted, waiting...");
                     }
                 }) as Box<dyn FnMut()>)
             };
@@ -78,14 +110,11 @@ pub fn ImageCanvas(
     Effect::new(move |_| {
         if canvas_ready.get() {
             if let Some(src) = image_src.get() {
-                web_sys::console::log_1(
-                    &format!(
-                        "🖼️ Image source updated: {}... (length: {} bytes)",
-                        &src[..src.len().min(50)],
-                        src.len()
-                    )
-                    .into(),
-                );
+                log_to_console(&format!(
+                    "🖼️ Image source updated: {}... (length: {} bytes)",
+                    &src[..src.len().min(50)],
+                    src.len()
+                ));
 
                 set_is_processing.set(true);
                 web_sys::console::log_1(&"⏳ Starting image loading process".into());
@@ -112,23 +141,20 @@ pub fn ImageCanvas(
                 let img_clone = img_rc.clone();
 
                 let onload_callback = Closure::wrap(Box::new(move || {
-                    web_sys::console::log_1(&"✅ Image onload event triggered".into());
+                    log_to_console("✅ Image onload event triggered");
 
                     if let Some(canvas) = canvas_ref_clone.get_untracked() {
                         let natural_width = img_clone.natural_width();
                         let natural_height = img_clone.natural_height();
 
-                        web_sys::console::log_1(
-                            &format!(
-                                "📐 Image loaded - Natural dimensions: {natural_width}x{natural_height}"
-                            )
-                            .into(),
-                        );
+                        log_to_console(&format!(
+                            "📐 Image loaded - Natural dimensions: {natural_width}x{natural_height}"
+                        ));
 
                         let (width, height) = calculate_dimensions(&img_clone);
-                        web_sys::console::log_1(
-                            &format!("📏 Calculated display dimensions: {width}x{height}").into(),
-                        );
+                        log_to_console(&format!(
+                            "📏 Calculated display dimensions: {width}x{height}"
+                        ));
 
                         set_canvas_width_clone.set(width);
                         set_canvas_height_clone.set(height);
@@ -139,22 +165,26 @@ pub fn ImageCanvas(
                         let img_for_draw = img_clone.clone();
                         let canvas_for_draw = canvas.clone();
 
-                        // Wait two frames to ensure canvas is updated
+                        // Draw immediately and also after a small delay to ensure proper rendering
+                        let _canvas_for_draw_immediate = canvas_for_draw.clone();
+                        let img_for_draw_immediate = img_for_draw.clone();
+
+                        // First draw attempt using our helper function
+                        if let Some(canvas) = canvas_ref_clone.get_untracked() {
+                            let _ = draw_image_on_canvas(&canvas, &img_for_draw_immediate);
+                        }
+
+                        // Second draw attempt after a delay to ensure rendering
                         request_animation_frame_with_delay(
                             move || {
                                 match get_canvas_context_safe(&canvas_for_draw) {
                                     Ok(ctx) => {
-                                        web_sys::console::log_1(
-                                            &"🎨 Got canvas context successfully".into(),
-                                        );
+                                        log_to_console("🎨 Got canvas context successfully");
 
-                                        ctx.clear_rect(0.0, 0.0, width as f64, height as f64);
-
-                                        if let Err(e) = ctx.draw_image_with_html_image_element(
-                                            &img_for_draw,
-                                            0.0,
-                                            0.0,
-                                        ) {
+                                        // Use our helper function for drawing
+                                        if let Err(e) =
+                                            draw_image_on_canvas(&canvas_for_draw, &img_for_draw)
+                                        {
                                             web_sys::console::error_1(
                                                 &format!("❌ Failed to draw image: {e:?}").into(),
                                             );
@@ -184,8 +214,8 @@ pub fn ImageCanvas(
                                                 Err(e) => {
                                                     web_sys::console::error_1(
                                                         &format!(
-                                                        "❌ Failed to extract image data: {e:?}"
-                                                    )
+                                                            "❌ Failed to extract image data: {e:?}"
+                                                        )
                                                         .into(),
                                                     );
                                                 }
@@ -204,7 +234,7 @@ pub fn ImageCanvas(
                             32,
                         ); // Wait 2 frames (32ms)
                     } else {
-                        web_sys::console::error_1(&"❌ Canvas reference is None".into());
+                        log_to_console("❌ Canvas reference is None");
                         set_is_processing_clone.set(false);
                     }
                 }) as Box<dyn FnMut()>);
@@ -248,17 +278,38 @@ pub fn ImageCanvas(
     });
 
     view! {
-        <div class="image-canvas-container">
+        <div class="relative w-full h-full flex items-center justify-center">
             <canvas
                 node_ref=canvas_ref
-                width=move || canvas_width().to_string()
-                height=move || canvas_height().to_string()
-                class="image-canvas"
-                style="display: block; border: 1px solid #ccc;"
+                width=move || canvas_width.get()
+                height=move || canvas_height.get()
+                class={
+                    let base = "block max-w-full max-h-[80vh] rounded-lg shadow-sm border ";
+                    let light = "border-gray-300 bg-white";
+                    let dark = "dark:border-gray-600 dark:bg-gray-900";
+                    move || format!("{base}{light} {dark}")
+                }
+                style=move || {
+                    format!(
+                        "width: {}px; height: {}px; display: block; background-color: transparent;",
+                        canvas_width.get_untracked(),
+                        canvas_height.get_untracked(),
+                    )
+                }
+                aria-label="Image preview canvas"
             ></canvas>
-            <div class="loading-overlay" class:hidden=move || !is_processing()>
-                <div class="spinner"></div>
-                <p>Processing...</p>
+            <div class=move || {
+                let base_classes = "absolute inset-0 flex flex-col items-center justify-center text-white transition-opacity duration-200 rounded-lg";
+                let theme_classes = "bg-black/50 dark:bg-black/70";
+                let state_classes = if is_processing.get() {
+                    "opacity-100 pointer-events-auto"
+                } else {
+                    "opacity-0 pointer-events-none"
+                };
+                format!("{base_classes} {theme_classes} {state_classes}")
+            }>
+                <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-lg font-medium">Processing...</p>
             </div>
         </div>
     }

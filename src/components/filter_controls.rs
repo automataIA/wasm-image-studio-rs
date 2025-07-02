@@ -121,13 +121,16 @@ pub fn FilterControls(
     };
 
     view! {
-        <div class="space-y-4 p-4 bg-white rounded-lg shadow">
+        <div class="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
+            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Filtri Immagine</h3>
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                     "Seleziona Filtro"
                 </label>
                 <select
-                    class="w-full p-2 border border-gray-300 rounded-md"
+                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md
+                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white
+                           focus:ring-blue-500 focus:border-blue-500"
                     on:change=move |ev| {
                         let idx = event_target_value(&ev).parse::<usize>().unwrap_or(0);
                         if let Some((filter_type, _)) = FILTER_OPTIONS.get(idx) {
@@ -158,7 +161,7 @@ pub fn FilterControls(
                             Some(config) => {
                                 view! {
                                     <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700">
+                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
                                             "Intensità: "
                                             <span class="font-bold">
                                                 {move || {
@@ -168,7 +171,7 @@ pub fn FilterControls(
                                         </label>
                                         <input
                                             type="range"
-                                            class="w-full"
+                                            class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
                                             min=config.min
                                             max=config.max
                                             step=config.step
@@ -180,7 +183,7 @@ pub fn FilterControls(
                                                 on_intensity_change.run(value);
                                             }
                                         />
-                                        <div class="flex justify-between text-xs text-gray-500">
+                                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
                                             <span>{format!("{}{}", config.min, config.unit)}</span>
                                             <span>{format!("{}{}", config.max, config.unit)}</span>
                                         </div>
@@ -190,7 +193,7 @@ pub fn FilterControls(
                             }
                             None => {
                                 view! {
-                                    <div class="text-sm text-gray-600">
+                                    <div class="text-sm text-gray-600 dark:text-gray-400">
                                         <p>
                                             "This filter does not require intensity adjustments."
                                         </p>
@@ -205,7 +208,7 @@ pub fn FilterControls(
             }}
 
             <button
-                class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600"
+                class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors"
                 on:click=move |_| {
                     set_active_filter.set(Some(FilterType::None));
                     on_filter_change.run(FilterType::None);

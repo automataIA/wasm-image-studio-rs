@@ -71,11 +71,12 @@ pub fn DragDrop(
         <div
             class=move || {
                 tw_merge!(
-                    "border-2", "border-dashed", "transition-colors", "rounded-lg", "bg-white", "shadow-sm",
+                    "border-2 border-dashed transition-colors rounded-lg shadow-sm",
+                    "bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600",
                     if dragging.get() {
-                        "border-blue-500 bg-blue-50"
+                        "border-blue-500 bg-blue-50 dark:bg-blue-900/20"
                     } else {
-                        "border-gray-300 hover:border-blue-400"
+                        "hover:border-blue-400 dark:hover:border-blue-500"
                     },
                     class.unwrap_or("")
                 )
@@ -87,7 +88,8 @@ pub fn DragDrop(
         >
             // CardContent replacement using div with Tailwind classes
             <div class=tw_join!(
-                "flex", "flex-col", "items-center", "justify-center", "p-8", "text-center", "cursor-pointer"
+                "flex flex-col items-center justify-center p-8 text-center cursor-pointer",
+                "text-gray-700 dark:text-gray-300"
             )>
                 <div class=tw_join!("flex", "flex-col", "items-center", "gap-3")>
                     <svg
@@ -118,10 +120,11 @@ pub fn DragDrop(
                     <button
                         r#type="button"
                         class=tw_join!(
-                            "mt-2", "inline-flex", "items-center", "px-3", "py-2", "border", "border-gray-300",
-                            "shadow-sm", "text-sm", "leading-4", "font-medium", "rounded-md", "text-gray-700",
-                            "bg-white", "hover:bg-gray-50", "focus:outline-none", "focus:ring-2",
-                            "focus:ring-offset-2", "focus:ring-blue-500"
+                            "mt-2 inline-flex items-center px-3 py-2 border rounded-md shadow-sm",
+                            "text-sm font-medium focus:outline-none focus:ring-2 focus:ring-offset-2",
+                            "border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200",
+                            "bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600",
+                            "focus:ring-blue-500 dark:focus:ring-blue-600"
                         )
                         on:click=move |ev| {
                             ev.stop_propagation();

@@ -49,14 +49,17 @@ pub fn ExportPanel(
 
     view! {
         <div class=tw_join!(
-            "export-panel", "bg-white", "p-6", "rounded-lg", "shadow-sm", "border", "border-gray-100"
+            "export-panel p-6 rounded-lg shadow-sm border",
+            "bg-white dark:bg-gray-800 border-gray-100 dark:border-gray-700"
         )>
-            <h3 class=tw_join!("text-lg", "font-bold", "mb-4")>"💾 Export Image"</h3>
+            <h3 class=tw_join!(
+                "text-lg font-bold mb-4 text-gray-900 dark:text-white"
+            )>"💾 Export Image"</h3>
 
             <div class=tw_join!("export-field", "mb-4")>
                 <label
                     for="format-select"
-                    class=tw_join!("block", "text-sm", "font-medium", "text-gray-700", "mb-1")
+                    class=tw_join!("block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300")
                 >
                     "Format:"
                 </label>
@@ -68,9 +71,10 @@ pub fn ExportPanel(
                     }
                     prop:value=move || export_format.get()
                     class=tw_join!(
-                        "block", "w-full", "rounded-md", "border-gray-300", "shadow-sm",
-                        "focus:border-blue-500", "focus:ring-blue-500", "sm:text-sm",
-                        "p-2", "border"
+                        "block w-full rounded-md shadow-sm sm:text-sm p-2 border",
+                        "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600",
+                        "text-gray-900 dark:text-white",
+                        "focus:border-blue-500 focus:ring-blue-500"
                     )
                 >
                     <option value="PNG">"PNG"</option>
@@ -82,7 +86,7 @@ pub fn ExportPanel(
             <div class=tw_join!("export-field", "mb-6")>
                 <label
                     for="filename-input"
-                    class=tw_join!("block", "text-sm", "font-medium", "text-gray-700", "mb-1")
+                    class=tw_join!("block text-sm font-medium mb-1 text-gray-700 dark:text-gray-300")
                 >
                     "Filename:"
                 </label>
@@ -96,24 +100,28 @@ pub fn ExportPanel(
                     }
                     placeholder="processed-image"
                     class=tw_join!(
-                        "block", "w-full", "rounded-md", "border-gray-300", "shadow-sm",
-                        "focus:border-blue-500", "focus:ring-blue-500", "sm:text-sm",
-                        "p-2", "border"
+                        "block w-full rounded-md shadow-sm sm:text-sm p-2 border",
+                        "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600",
+                        "text-gray-900 dark:text-white",
+                        "focus:border-blue-500 focus:ring-blue-500"
                     )
                 />
             </div>
 
             <button
+                type="button"
+                on:click=handle_export
+                disabled=is_exporting
                 class=move || {
-                    tw_merge!(
-                        "w-full", "bg-blue-500", "text-white", "font-bold", "py-2", "px-4", "rounded",
-                        "hover:bg-blue-700", "focus:outline-none", "focus:ring-2", "focus:ring-blue-500",
-                        "focus:ring-offset-2", "disabled:opacity-50", "disabled:cursor-not-allowed",
+                    tw_join!(
+                        "w-full flex items-center justify-center px-4 py-2",
+                        "border border-transparent rounded-md shadow-sm text-sm font-medium",
+                        "text-white bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800",
+                        "focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500",
+                        "disabled:opacity-50 disabled:cursor-not-allowed transition-colors",
                         if is_exporting.get() { "opacity-75" } else { "" }
                     )
                 }
-                on:click=handle_export
-                disabled=move || is_exporting.get()
             >
                 {move || {
                     if is_exporting.get() {
