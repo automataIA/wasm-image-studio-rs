@@ -10,32 +10,55 @@ fn log_to_console(message: &str) {
     web_sys::console::log_1(&wasm_bindgen::JsValue::from_str(message));
 }
 
-// Function to safely draw image on canvas with error handling
+// Function to safely draw image on canvas with error handling while maintaining aspect ratio
 fn draw_image_on_canvas(canvas: &HtmlCanvasElement, img: &HtmlImageElement) -> Result<(), JsValue> {
     log_to_console("Starting to draw on canvas...");
 
-    // Ensure canvas has valid dimensions
-    if canvas.width() == 0 || canvas.height() == 0 {
-        log_to_console("Error: Invalid canvas dimensions");
-        return Err(JsValue::from_str("Invalid canvas dimensions"));
-    }
+    let img_width = img.natural_width() as f64;
+    let img_height = img.natural_height() as f64;
+    let canvas_width = canvas.width() as f64;
+    let canvas_height = canvas.height() as f64;
 
-    // Get 2D context with error handling
+    log_to_console(&format!(
+        "Image size: {img_width}x{img_height}, Canvas size: {canvas_width}x{canvas_height}"
+    ));
+
     let ctx = match canvas.get_context("2d") {
-        Ok(Some(ctx)) => ctx.dyn_into::<web_sys::CanvasRenderingContext2d>()?,
+        Ok(Some(ctx)) => ctx.dyn_into::<web_sys::CanvasRenderingContext2d>(),
         _ => {
             log_to_console("Error: Could not get 2D context");
             return Err(JsValue::from_str("Could not get 2D context"));
         }
-    };
+    }?;
 
-    // Clear canvas
-    ctx.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
+    // Clear canvas with a light background
+    ctx.set_fill_style_str("#f0f0f0");
+    ctx.fill_rect(0.0, 0.0, canvas_width, canvas_height);
 
-    // Draw image
-    ctx.draw_image_with_html_image_element(img, 0.0, 0.0)?;
-    log_to_console("Image drawn successfully");
+    // Calculate scaling factor to fit the image within canvas while maintaining aspect ratio
+    let scale = f64::min(canvas_width / img_width, canvas_height / img_height);
 
+    // Calculate new dimensions
+    let new_width = img_width * scale;
+    let new_height = img_height * scale;
+
+    // Calculate position to center the image
+    let x = (canvas_width - new_width) / 2.0;
+    let y = (canvas_height - new_height) / 2.0;
+
+    log_to_console(&format!(
+        "Drawing image at size: {new_width}x{new_height} at position ({x}, {y}) with scale {scale}"
+    ));
+
+    // Draw image centered and scaled to fit
+    ctx.draw_image_with_html_image_element_and_sw_and_sh_and_dx_and_dy_and_dw_and_dh(
+        img, 0.0, 0.0, // source x, y
+        img_width, img_height, // source width, height
+        x, y, // destination x, y
+        new_width, new_height, // destination width, height
+    )?;
+
+    log_to_console("Image drawn successfully with aspect ratio maintained");
     Ok(())
 }
 
@@ -151,16 +174,15 @@ pub fn ImageCanvas(
                             "📐 Image loaded - Natural dimensions: {natural_width}x{natural_height}"
                         ));
 
-                        let (width, height) = calculate_dimensions(&img_clone);
-                        log_to_console(&format!(
-                            "📏 Calculated display dimensions: {width}x{height}"
-                        ));
+                        // Set fixed canvas dimensions (you can adjust these values)
+                        let canvas_width = 800.0;
+                        let canvas_height = 600.0;
 
-                        set_canvas_width_clone.set(width);
-                        set_canvas_height_clone.set(height);
+                        canvas.set_width(canvas_width as u32);
+                        canvas.set_height(canvas_height as u32);
 
-                        canvas.set_width(width as u32);
-                        canvas.set_height(height as u32);
+                        set_canvas_width_clone.set(canvas_width as i32);
+                        set_canvas_height_clone.set(canvas_height as i32);
 
                         let img_for_draw = img_clone.clone();
                         let canvas_for_draw = canvas.clone();
@@ -193,11 +215,13 @@ pub fn ImageCanvas(
                                                 &"✅ Image successfully drawn to canvas".into(),
                                             );
 
+                                            let canvas_width = canvas.width() as f64;
+                                            let canvas_height = canvas.height() as f64;
                                             match ctx.get_image_data(
                                                 0.0,
                                                 0.0,
-                                                width as f64,
-                                                height as f64,
+                                                canvas_width,
+                                                canvas_height,
                                             ) {
                                                 Ok(image_data) => {
                                                     let data = image_data.data();
@@ -312,39 +336,6 @@ pub fn ImageCanvas(
                 <p class="text-lg font-medium">Processing...</p>
             </div>
         </div>
-    }
-}
-
-fn calculate_dimensions(img: &HtmlImageElement) -> (i32, i32) {
-    let max_width = 1400;
-    let max_height = 900;
-
-    let width = img.natural_width() as i32;
-    let height = img.natural_height() as i32;
-
-    web_sys::console::log_1(&format!("Original dimensions: {width}x{height}").into());
-
-    if width <= 0 || height <= 0 {
-        web_sys::console::error_1(&"Invalid image dimensions".into());
-        return (max_width, max_height);
-    }
-
-    if width > max_width || height > max_height {
-        let width_ratio = max_width as f64 / width as f64;
-        let height_ratio = max_height as f64 / height as f64;
-        let ratio = width_ratio.min(height_ratio);
-
-        let new_width = (width as f64 * ratio) as i32;
-        let new_height = (height as f64 * ratio) as i32;
-
-        web_sys::console::log_1(
-            &format!("Scaled to: {new_width}x{new_height} (ratio: {ratio:.2})").into(),
-        );
-
-        (new_width, new_height)
-    } else {
-        web_sys::console::log_1(&"No scaling needed".into());
-        (width, height)
     }
 }
 

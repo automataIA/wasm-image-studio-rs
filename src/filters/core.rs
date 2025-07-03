@@ -14,8 +14,15 @@ fn map_intensity(filter_type: FilterType, intensity: f64) -> f64 {
     match filter_type {
         // Brighten: -100 to +100 (direct mapping)
         FilterType::Brighten => intensity,
-        // Contrast: 0-200% -> 0.0-2.0
-        FilterType::Contrast => intensity / 100.0,
+        // Contrast: 0-200% -> 0.0-4.0 (0.0-2.0 for 0-100%, 2.1-4.0 for 101-200%)
+        FilterType::Contrast => {
+            let normalized = intensity / 100.0; // 0.0 to 2.0
+            if normalized <= 1.0 {
+                normalized // 0.0 to 1.0 maps to 0.0 to 1.0
+            } else {
+                1.0 + (normalized - 1.0) * 3.0 // 1.1 to 2.0 maps to 1.3 to 4.0
+            }
+        }
         // Hue: 0-360 degrees (direct mapping)
         FilterType::Hue => intensity,
         // Saturate: 0-200% -> 0.0-2.0
@@ -44,7 +51,11 @@ pub fn apply_filter(img: &mut PhotonImage, filter_type: FilterType, intensity: f
             // Fix type: adjust_brightness requires i16, not i32
             adjust_brightness(img, map_intensity(filter_type, intensity) as i16)
         }
-        FilterType::Contrast => adjust_contrast(img, map_intensity(filter_type, intensity) as f32),
+        FilterType::Contrast => {
+            let contrast_value = map_intensity(filter_type, intensity) as f32;
+            // Ensure we don't go below 0.1 to prevent inversion
+            adjust_contrast(img, contrast_value.max(0.1))
+        }
         FilterType::Hue => hue_rotate_hsv(img, map_intensity(filter_type, intensity) as f32),
         FilterType::Saturate => saturate_custom(img, map_intensity(filter_type, intensity) as f32),
         FilterType::Invert => invert_custom(img),

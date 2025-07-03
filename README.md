@@ -88,16 +88,95 @@ trunk build --release
 
 The build artifacts will be stored in the `dist/` directory.
 
+### Testing
+
+Run the test suite with:
+
+```bash
+cargo test
+```
+
+For browser-based tests:
+```bash
+wasm-pack test --headless --firefox
+```
+
+## 🤝 Contributing
+
+Contributions are welcome! Please follow these steps:
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Style
+
+- Follow the [Rust API Guidelines](https://rust-lang.github.io/api-guidelines/)
+- Use `rustfmt` for code formatting
+- Run `clippy` for linting
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- [Leptos](https://leptos.dev/) for the awesome Rust web framework
+- [Photon-rs](https://github.com/silvia-odwyer/photon) for image processing
+- [Trunk](https://trunkrs.dev/) for WASM application bundling
+- All contributors who have helped improve this project
+
 ## 🏗️ Project Structure
 
 ```
 .
+# Root
 ├── Cargo.toml          # Rust project configuration and dependencies
+├── Cargo.lock          # Lock file for Rust dependencies
 ├── index.html          # Main HTML entry point with root element for the WASM app
 ├── input.css           # Global styles and Tailwind CSS imports
-├── public/             # Static assets ----------------------
+├── Trunk.toml          # Trunk configuration
+├── info/               # Project documentation
+│   └── structure.md    # Detailed project structure documentation
+
+# Source Code
+├── src/
+│   ├── components/     # Reusable UI components
+│   │   ├── app_layout.rs    # Main application layout
+│   │   ├── counter_btn.rs   # Counter button component
+│   │   ├── drag_drop.rs     # File upload component
+│   │   ├── export_panel.rs  # Image export controls
+│   │   ├── filter_controls.rs # Filter adjustment controls
+│   │   ├── image_canvas.rs  # Image display and manipulation
+│   │   └── mod.rs           # Components module exports
+│   │
+│   ├── filters/        # Image processing filters
+│   │   ├── core.rs     # Core filter implementations
+│   │   ├── mod.rs      # Filters module exports
+│   │   └── wrappers.rs # WebAssembly bindings
+│   │
+│   ├── pages/          # Application pages
+│   │   ├── home.rs     # Main application page
+│   │   ├── not_found.rs # 404 error page
+│   │   └── mod.rs      # Pages module exports
+│   │
+│   ├── utils/          # Utility functions
+│   │   ├── memory.rs   # Memory management utilities
+│   │   └── mod.rs      # Utils module exports
+│   │
+│   ├── lib.rs          # Library entry point
+│   └── main.rs         # Application entry point
+
+# Static Assets
+├── public/             # Static assets
 │   ├── favicon.ico     # Browser tab icon
 │   └── logo.png        # Application logo
+
+# Build Output
+├── target/             # Compiled artifacts (gitignored)
+└── dist/               # Production build output (gitignored)
 ├── src/ ----------------
 │   ├── components/     # Reusable UI components -------------
 │   │   ├── app_layout.rs      # Main application layout with header and content area
