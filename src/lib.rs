@@ -20,7 +20,7 @@ pub fn App() -> impl IntoView {
     provide_meta_context();
 
     view! {
-        <Html attr:lang="en" attr:dir="ltr" attr:data-theme="light" />
+        <Html attr:lang="en" attr:dir="ltr" attr:data-theme="dark" />
 
         // sets the document title
         <Title text="WASM Image Studio - Rust WebAssembly Image Processing" />

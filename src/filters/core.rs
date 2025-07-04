@@ -4,7 +4,7 @@
 use crate::filters::FilterType;
 use photon_rs::colour_spaces::{hsv, hue_rotate_hsv};
 use photon_rs::conv::{edge_detection, gaussian_blur, sharpen};
-use photon_rs::effects::{adjust_brightness, adjust_contrast};
+use photon_rs::effects::{adjust_contrast, adjust_brightness};
 use photon_rs::monochrome::{grayscale, sepia};
 use photon_rs::transform::{crop, fliph, flipv, resize, rotate};
 use photon_rs::PhotonImage;
@@ -12,27 +12,38 @@ use photon_rs::PhotonImage;
 // Update the map_intensity function to handle different filter types
 fn map_intensity(filter_type: FilterType, intensity: f64) -> f64 {
     match filter_type {
-        // Brighten: -100 to +100 (direct mapping)
-        FilterType::Brighten => intensity,
-        // Contrast: 0-200% -> 0.0-4.0 (0.0-2.0 for 0-100%, 2.1-4.0 for 101-200%)
+        // Brightness: -100 to +100 -> -255 to +255 (scaled for better control)
+        // Valori negativi scuriscono, positivi schiariscono
+        FilterType::Brighten => intensity * 2.55,
+        
+        // Contrast: -100% to +100% -> 0.0-2.0
+        // -100 -> 0.0 (nessun contrasto, grigio)
+        // 0 -> 1.0 (contrasto normale/neutro)
+        // +100 -> 2.0 (contrasto molto alto)
         FilterType::Contrast => {
-            let normalized = intensity / 100.0; // 0.0 to 2.0
-            if normalized <= 1.0 {
-                normalized // 0.0 to 1.0 maps to 0.0 to 1.0
-            } else {
-                1.0 + (normalized - 1.0) * 3.0 // 1.1 to 2.0 maps to 1.3 to 4.0
-            }
-        }
-        // Hue: 0-360 degrees (direct mapping)
+            // Mappiamo -100..100 a 0.0..2.0 con 1.0 come punto neutro
+            (intensity + 100.0) / 100.0
+        },
+        
+        // Hue: -180 to +180 degrees (direct mapping)
+        // Photon-rs accetta valori in gradi direttamente
         FilterType::Hue => intensity,
-        // Saturate: 0-200% -> 0.0-2.0
-        FilterType::Saturate => intensity / 100.0,
+        
+        // Saturate: -100% to +100% -> 0.0-2.0
+        // -100 -> 0.0 (nessuna saturazione, bianco e nero)
+        // 0 -> 1.0 (saturazione normale/neutra)
+        // +100 -> 2.0 (saturazione molto alta)
+        FilterType::Saturate => (intensity + 100.0) / 100.0,
+        
         // Blur: 0-20px (direct mapping)
-        FilterType::Blur => intensity,
-        // Sharpen: 0-200% -> 0.0-2.0
-        FilterType::Sharpen => intensity / 100.0,
+        FilterType::Blur => intensity.max(0.0),
+        
+        // Sharpen: -100% to +100% -> 0.5-1.5 (similar to contrast)
+        FilterType::Sharpen => (intensity / 100.0) + 1.0,
+        
         // Sepia: 0-100% -> 0.0-1.0
         FilterType::Sepia => intensity / 100.0,
+        
         // Default case (shouldn't be reached for filters without intensity)
         _ => intensity,
     }
@@ -48,16 +59,47 @@ pub fn apply_filter(img: &mut PhotonImage, filter_type: FilterType, intensity: f
         }
         FilterType::Blur => blur_custom(img, map_intensity(filter_type, intensity) as f32),
         FilterType::Brighten => {
-            // Fix type: adjust_brightness requires i16, not i32
-            adjust_brightness(img, map_intensity(filter_type, intensity) as i16)
+            // Mappiamo -100..100 a -255..255
+            let brightness = map_intensity(filter_type, intensity) as i32;
+            // Assicuriamoci che il valore sia nel range valido per i16
+            let brightness_clamped = brightness.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
+            web_sys::console::log_1(&format!("Applying brightness: {}", brightness_clamped).into());
+            adjust_brightness(img, brightness_clamped);
         }
         FilterType::Contrast => {
-            let contrast_value = map_intensity(filter_type, intensity) as f32;
-            // Ensure we don't go below 0.1 to prevent inversion
-            adjust_contrast(img, contrast_value.max(0.1))
+            // Mappiamo -100..100 a 0.0..2.0 (con 1.0 come neutro)
+            let contrast = map_intensity(filter_type, intensity) as f32;
+            // Assicuriamoci che il contrasto sia sempre positivo (minimo 0.1 per evitare problemi)
+            let contrast_clamped = contrast.max(0.1);
+            web_sys::console::log_1(&format!("Applying contrast: {}", contrast_clamped).into());
+            adjust_contrast(img, contrast_clamped);
         }
-        FilterType::Hue => hue_rotate_hsv(img, map_intensity(filter_type, intensity) as f32),
-        FilterType::Saturate => saturate_custom(img, map_intensity(filter_type, intensity) as f32),
+        FilterType::Hue => {
+            // Mappiamo direttamente -180..180 gradi
+            let degrees = map_intensity(filter_type, intensity) as f32;
+            web_sys::console::log_1(&format!("Applying hue rotation: {} degrees", degrees).into());
+            // Photon-rs accetta valori negativi e positivi per la rotazione della tonalità
+            hue_rotate_hsv(img, degrees);
+        }
+        FilterType::Saturate => {
+            // Mappiamo -100..100 a 0.0..2.0
+            let saturation = map_intensity(filter_type, intensity) as f32;
+            web_sys::console::log_1(&format!("Applying saturation: {}", saturation).into());
+            
+            // photon-rs ha due modalità: "saturate" (0-1) e "desaturate" (0-1)
+            if saturation > 1.0 {
+                // Aumenta saturazione (1.0-2.0 -> 0.0-1.0)
+                let amount = saturation - 1.0;
+                web_sys::console::log_1(&format!("Saturating by: {}", amount).into());
+                hsv(img, "saturate", amount);
+            } else if saturation < 1.0 {
+                // Diminuisci saturazione (0.0-1.0 -> 0.0-1.0)
+                let amount = 1.0 - saturation;
+                web_sys::console::log_1(&format!("Desaturating by: {}", amount).into());
+                hsv(img, "desaturate", amount);
+            }
+            // Se saturation == 1.0, non fare nulla (è il valore neutro)
+        }
         FilterType::Invert => invert_custom(img),
         FilterType::EdgeDetection => edge_detection(img),
         FilterType::Sharpen => {
@@ -120,24 +162,24 @@ fn blend_with_original(original: &mut PhotonImage, filtered: &PhotonImage, alpha
 
 // Blur implementation using photon-rs gaussian_blur
 fn blur_custom(img: &mut PhotonImage, intensity: f32) {
-    // Fix type: gaussian_blur requires i32, not f32
-    let sigma = (intensity * 2.0).max(0.1) as i32; // Convert to i32
-    gaussian_blur(img, sigma);
+    // Convert intensity to sigma value (more gradual scaling)
+    let sigma = (intensity * 0.5).max(0.0);
+    if sigma > 0.0 {
+        gaussian_blur(img, sigma as i32);
+    }
 }
 
 // Saturation implementation using photon-rs hsv
 fn saturate_custom(img: &mut PhotonImage, intensity: f32) {
-    // photon-rs hsv with "saturate" mode requires a 0.0-1.0 value
-    // The intensity is already mapped from 0-200% to 0.0-2.0
-    if intensity > 1.0 {
-        let saturation_amount = (intensity - 1.0).clamp(0.0, 1.0);
-        if saturation_amount > 0.0 {
+    // intensity is mapped from -100% to +100% to 0.0-2.0
+    if (intensity - 1.0).abs() > f32::EPSILON {  // Only process if not neutral (1.0)
+        if intensity > 1.0 {
+            // Saturate (1.0 to 2.0)
+            let saturation_amount = (intensity - 1.0).clamp(0.0, 1.0);
             hsv(img, "saturate", saturation_amount);
-        }
-    } else if intensity < 1.0 {
-        // To desaturate when intensity < 1.0
-        let desaturation_amount = (1.0 - intensity).clamp(0.0, 1.0);
-        if desaturation_amount > 0.0 {
+        } else {
+            // Desaturate (0.0 to 1.0)
+            let desaturation_amount = (1.0 - intensity).clamp(0.0, 1.0);
             hsv(img, "desaturate", desaturation_amount);
         }
     }

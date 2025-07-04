@@ -5,6 +5,7 @@ use crate::filters::FilterType;
 use leptos::prelude::*;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen::JsCast;
+use web_sys::window;
 
 /// WASM Image Studio - Home Page
 #[allow(non_snake_case)]
@@ -92,86 +93,101 @@ pub fn Home() -> impl IntoView {
         set_filter_intensity.set(value);
     });
 
-    // Theme state
-    let (dark_mode, set_dark_mode) = signal(false);
+    // Theme state - initialize from localStorage or system preference
+    let (dark_mode, set_dark_mode) = signal({
+        // Try to get from localStorage first
+        let stored = window()
+            .and_then(|w| w.local_storage().ok()?)
+            .and_then(|storage| storage.get_item("darkMode").ok()?)
+            .and_then(|mode| mode.parse::<bool>().ok());
 
-    // Toggle theme function
+        // Fall back to system preference
+        stored.unwrap_or_else(|| {
+            window()
+                .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok()?)
+                .and_then(|media| media.matches().then_some(true))
+                .unwrap_or(false)
+        })
+    });
+
+    // Sync dark mode class with the signal
+    Effect::new(move |_| {
+        let is_dark = dark_mode.get();
+        if let Some(html) = document().document_element() {
+            if is_dark {
+                let _ = html.class_list().add_1("dark");
+            } else {
+                let _ = html.class_list().remove_1("dark");
+            }
+            // Save preference to localStorage
+            if let Some(local_storage) = window().and_then(|w| w.local_storage().ok()).flatten() {
+                let _ = local_storage.set_item("darkMode", &is_dark.to_string());
+            }
+        }
+    });
+
+    // Toggle theme function - now just toggles the signal
     let toggle_theme = move |_| {
         set_dark_mode.update(|d| *d = !*d);
-        // Toggle dark class on document element
-        if dark_mode.get() {
-            document()
-                .document_element()
-                .unwrap()
-                .class_list()
-                .add_1("dark")
-                .unwrap();
-        } else {
-            document()
-                .document_element()
-                .unwrap()
-                .class_list()
-                .remove_1("dark")
-                .unwrap();
-        }
     };
 
     view! {
         <div class="min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
             <div class="relative flex items-center justify-between px-8 py-4 shadow-sm bg-white dark:bg-gray-800">
-                <div class="flex-1"></div> {/* Spacer a sinistra */}
+                <div class="flex-1"></div>
+                {}
                 <div class="flex items-center justify-center flex-1">
                     <img src="/logo.png" alt="WASM Image Studio Logo" class="h-12 w-12 mr-4" />
                     <h1 class="text-3xl font-bold">"WASM Image Studio"</h1>
                 </div>
                 <div class="flex-1 flex justify-end">
-                <button
-                    on:click=move |ev| {
-                        ev.prevent_default();
-                        toggle_theme(ev);
-                    }
-                    class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
-                    aria-label="Toggle dark mode"
-                >
-                    <Show
-                        when=move || !dark_mode.get()
-                        fallback=move || {
-                            view! {
-                                // Moon icon (for dark mode)
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-6 w-6"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
-                                    />
-                                </svg>
-                            }
+                    <button
+                        on:click=move |ev| {
+                            ev.prevent_default();
+                            toggle_theme(ev);
                         }
+                        class="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:focus:ring-offset-gray-800"
+                        aria-label="Toggle dark mode"
                     >
-                        // Sun icon (for light mode)
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            class="h-6 w-6"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                        <Show
+                            when=move || !dark_mode.get()
+                            fallback=move || {
+                                view! {
+                                    // Moon icon (for dark mode)
+                                    <svg
+                                        xmlns="http://www.w3.org/2000/svg"
+                                        class="h-6 w-6"
+                                        fill="none"
+                                        viewBox="0 0 24 24"
+                                        stroke="currentColor"
+                                    >
+                                        <path
+                                            stroke-linecap="round"
+                                            stroke-linejoin="round"
+                                            stroke-width="2"
+                                            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+                                        />
+                                    </svg>
+                                }
+                            }
                         >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="2"
-                                d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
-                            />
-                        </svg>
-                    </Show>
-                </button>
+                            // Sun icon (for light mode)
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="h-6 w-6"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+                                />
+                            </svg>
+                        </Show>
+                    </button>
                 </div>
             </div>
 

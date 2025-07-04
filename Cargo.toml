@@ -52,6 +52,8 @@ web-sys = { version = "0.3", features = [
     "HtmlAnchorElement",
     "MouseEvent",
     "DomTokenList",
+    "MediaQueryList",
+    "Storage",
 ] }
 
 [dev-dependencies]

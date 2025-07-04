@@ -270,7 +270,7 @@ pub fn ImageCanvas(
         }
     });
 
-    // Effect for filters
+    // Effect for filters - Improved to ensure it always reacts to intensity changes
     Effect::new(move |_| {
         let filter = active_filter.get();
         let intensity = filter_intensity.get();
@@ -282,19 +282,30 @@ pub fn ImageCanvas(
                 );
 
                 if let Some(canvas) = canvas_ref.get_untracked() {
-                    if let Some(image_data) = original_image_data.get() {
+                    if let Some(image_data) = original_image_data.get_untracked() {
                         set_is_processing.set(true);
+
+                        // Clona i dati per evitare problemi di ownership
+                        let image_data_clone = image_data.clone();
+                        
+                        // Log per debug
+                        web_sys::console::log_1(
+                            &format!("Applying filter {filter_type:?} with intensity {intensity}, image data size: {} bytes", 
+                                image_data_clone.len()).into(),
+                        );
 
                         request_animation_frame(move || {
                             apply_filter(
                                 &canvas,
-                                &image_data,
+                                &image_data_clone,
                                 filter_type,
                                 intensity,
                                 set_is_processing,
                                 on_processing_complete,
                             );
                         });
+                    } else {
+                        web_sys::console::warn_1(&"Cannot apply filter: original image data is not available".into());
                     }
                 }
             }
