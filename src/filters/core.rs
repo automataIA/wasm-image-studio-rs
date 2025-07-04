@@ -63,7 +63,7 @@ pub fn apply_filter(img: &mut PhotonImage, filter_type: FilterType, intensity: f
             let brightness = map_intensity(filter_type, intensity) as i32;
             // Assicuriamoci che il valore sia nel range valido per i16
             let brightness_clamped = brightness.clamp(i16::MIN as i32, i16::MAX as i32) as i16;
-            web_sys::console::log_1(&format!("Applying brightness: {}", brightness_clamped).into());
+            web_sys::console::log_1(&format!("Applying brightness: {brightness_clamped}").into());
             adjust_brightness(img, brightness_clamped);
         }
         FilterType::Contrast => {
@@ -71,31 +71,31 @@ pub fn apply_filter(img: &mut PhotonImage, filter_type: FilterType, intensity: f
             let contrast = map_intensity(filter_type, intensity) as f32;
             // Assicuriamoci che il contrasto sia sempre positivo (minimo 0.1 per evitare problemi)
             let contrast_clamped = contrast.max(0.1);
-            web_sys::console::log_1(&format!("Applying contrast: {}", contrast_clamped).into());
+            web_sys::console::log_1(&format!("Applying contrast: {contrast_clamped}").into());
             adjust_contrast(img, contrast_clamped);
         }
         FilterType::Hue => {
             // Mappiamo direttamente -180..180 gradi
             let degrees = map_intensity(filter_type, intensity) as f32;
-            web_sys::console::log_1(&format!("Applying hue rotation: {} degrees", degrees).into());
+            web_sys::console::log_1(&format!("Applying hue rotation: {degrees} degrees").into());
             // Photon-rs accetta valori negativi e positivi per la rotazione della tonalità
             hue_rotate_hsv(img, degrees);
         }
         FilterType::Saturate => {
             // Mappiamo -100..100 a 0.0..2.0
             let saturation = map_intensity(filter_type, intensity) as f32;
-            web_sys::console::log_1(&format!("Applying saturation: {}", saturation).into());
+            web_sys::console::log_1(&format!("Applying saturation: {saturation}").into());
             
             // photon-rs ha due modalità: "saturate" (0-1) e "desaturate" (0-1)
             if saturation > 1.0 {
                 // Aumenta saturazione (1.0-2.0 -> 0.0-1.0)
                 let amount = saturation - 1.0;
-                web_sys::console::log_1(&format!("Saturating by: {}", amount).into());
+                web_sys::console::log_1(&format!("Saturating by: {amount}").into());
                 hsv(img, "saturate", amount);
             } else if saturation < 1.0 {
                 // Diminuisci saturazione (0.0-1.0 -> 0.0-1.0)
                 let amount = 1.0 - saturation;
-                web_sys::console::log_1(&format!("Desaturating by: {}", amount).into());
+                web_sys::console::log_1(&format!("Desaturating by: {amount}").into());
                 hsv(img, "desaturate", amount);
             }
             // Se saturation == 1.0, non fare nulla (è il valore neutro)
