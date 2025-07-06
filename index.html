@@ -1,21 +1,43 @@
 <!DOCTYPE html>
-<html class="dark">
+<html data-theme="bumblebee" class="h-full">
 
 <head>
-  <!-- Add a plain CSS file: see https://trunkrs.dev/assets/#css -->
-  <!-- If using Tailwind with Leptos CSR, see https://trunkrs.dev/assets/#tailwind instead-->
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WASM Image Studio</title>
+
+  <!-- Tailwind CSS via Vite -->
   <link data-trunk rel="tailwind-css" href="input.css" />
 
-  <!-- Include favicon in dist output: see https://trunkrs.dev/assets/#icon -->
+  <!-- Include favicon -->
   <link data-trunk rel="icon" href="public/favicon.ico" />
 
-  <!-- Include static files from public directory -->
+  <!-- Include static files -->
   <link data-trunk rel="copy-file" href="public/logo.png" />
 
-  <!-- include support for `wasm-bindgen --weak-refs` - see: https://rustwasm.github.io/docs/wasm-bindgen/reference/weak-references.html -->
+  <!-- Google Fonts - Inter -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- wasm-bindgen support -->
   <link data-trunk rel="rust" data-wasm-opt="z" data-weak-refs />
+
+  <style>
+    :root {
+      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    body {
+      @apply min-h-screen bg-base-200 text-base-content;
+    }
+
+    #root {
+      @apply min-h-screen flex flex-col;
+    }
+  </style>
 </head>
 
-<body></body>
+<body class="min-h-screen">
+  <div id="root"></div>
+</body>
 
 </html>

@@ -98,37 +98,61 @@ pub fn Home() -> impl IntoView {
         // Try to get from localStorage first
         let stored = window()
             .and_then(|w| w.local_storage().ok()?)
-            .and_then(|storage| storage.get_item("darkMode").ok()?)
-            .and_then(|mode| mode.parse::<bool>().ok());
+            .and_then(|storage| storage.get_item("theme").ok()?)
+            .map(|theme| theme == "dark");
 
-        // Fall back to system preference
+        // Fall back to darkMode or system preference
         stored.unwrap_or_else(|| {
             window()
-                .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok()?)
-                .and_then(|media| media.matches().then_some(true))
-                .unwrap_or(false)
+                .and_then(|w| w.local_storage().ok()?)
+                .and_then(|storage| storage.get_item("darkMode").ok()?)
+                .and_then(|mode| mode.parse::<bool>().ok())
+                .unwrap_or_else(|| {
+                    window()
+                        .and_then(|w| w.match_media("(prefers-color-scheme: dark)").ok()?)
+                        .and_then(|media| media.matches().then_some(true))
+                        .unwrap_or(false)
+                })
         })
     });
 
-    // Sync dark mode class with the signal
+    // Sync theme with the signal
     Effect::new(move |_| {
         let is_dark = dark_mode.get();
+        let theme = if is_dark { "dark" } else { "bumblebee" };
+
         if let Some(html) = document().document_element() {
+            let _ = html.set_attribute("data-theme", theme);
+            // Keep the dark class for compatibility with existing CSS
             if is_dark {
                 let _ = html.class_list().add_1("dark");
             } else {
                 let _ = html.class_list().remove_1("dark");
             }
-            // Save preference to localStorage
-            if let Some(local_storage) = window().and_then(|w| w.local_storage().ok()).flatten() {
-                let _ = local_storage.set_item("darkMode", &is_dark.to_string());
-            }
+        }
+
+        // Save preference to localStorage
+        if let Some(local_storage) = window().and_then(|w| w.local_storage().ok()).flatten() {
+            let _ = local_storage.set_item("darkMode", &is_dark.to_string());
+            let _ = local_storage.set_item("theme", theme);
         }
     });
 
     // Toggle theme function - now just toggles the signal
     let toggle_theme = move |_| {
+        let new_theme = if dark_mode.get() { "bumblebee" } else { "dark" };
         set_dark_mode.update(|d| *d = !*d);
+
+        // Update data-theme attribute instead of class
+        if let Some(html) = document().document_element() {
+            let _ = html.set_attribute("data-theme", new_theme);
+        }
+
+        // Save preference to localStorage
+        if let Some(local_storage) = window().and_then(|w| w.local_storage().ok()).flatten() {
+            let _ = local_storage.set_item("darkMode", &(!dark_mode.get()).to_string());
+            let _ = local_storage.set_item("theme", new_theme);
+        }
     };
 
     view! {
@@ -191,7 +215,7 @@ pub fn Home() -> impl IntoView {
                 </div>
             </div>
 
-            <div class="container mx-auto px-4">
+            <div class="container mx-auto px-4 pt-8 pb-12">
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     <div class="space-y-6">
                         <DragDrop on_file_upload=handle_file_upload />

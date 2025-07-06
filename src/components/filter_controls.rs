@@ -1,4 +1,4 @@
-// In src/components/filter_controls.rs
+// src/components/filter_controls.rs
 
 // Required imports for Leptos 0.8
 use crate::filters::FilterType;
@@ -86,19 +86,19 @@ const FILTER_OPTIONS: &[(FilterType, &str)] = &[
     (FilterType::Sharpen, "🔪"),
 ];
 
-fn filter_name_ita(filter_type: &FilterType) -> &'static str {
+fn filter_name_english(filter_type: &FilterType) -> &'static str {
     match filter_type {
-        FilterType::None => "Nessuno",
-        FilterType::Grayscale => "Scala di Grigi",
-        FilterType::Sepia => "Seppia",
-        FilterType::Blur => "Sfocatura",
-        FilterType::Brighten => "Luminosità",
-        FilterType::Contrast => "Contrasto",
-        FilterType::Hue => "Tonalità",
-        FilterType::Saturate => "Saturazione",
-        FilterType::Invert => "Inverti",
-        FilterType::EdgeDetection => "Rilevamento Bordi",
-        FilterType::Sharpen => "Nitidezza",
+        FilterType::None => "None",
+        FilterType::Grayscale => "Grayscale",
+        FilterType::Sepia => "Sepia",
+        FilterType::Blur => "Blur",
+        FilterType::Brighten => "Brightness",
+        FilterType::Contrast => "Contrast",
+        FilterType::Hue => "Hue",
+        FilterType::Saturate => "Saturation",
+        FilterType::Invert => "Invert",
+        FilterType::EdgeDetection => "Edge Detection",
+        FilterType::Sharpen => "Sharpen",
     }
 }
 
@@ -106,117 +106,128 @@ fn filter_name_ita(filter_type: &FilterType) -> &'static str {
 pub fn FilterControls(
     #[prop(into)] on_filter_change: Callback<FilterType>,
     intensity: ReadSignal<u8>,
-    #[prop(into)] on_intensity_change: Callback<u8>, // Add #[prop(into)]
+    #[prop(into)] on_intensity_change: Callback<u8>,
 ) -> impl IntoView {
     let (active_filter, set_active_filter) = signal(None::<FilterType>);
 
-    // Function to handle filter change - FIX HERE
+    // Function to handle filter change
     let handle_filter_change = move |filter_type: FilterType| {
         set_active_filter.set(Some(filter_type));
-        on_filter_change.run(filter_type); // ✅ Usa .run()
+        on_filter_change.run(filter_type);
 
         if let Some(config) = FilterConfig::for_filter(&filter_type) {
-            on_intensity_change.run(config.default as u8); // ✅ Usa .run()
+            on_intensity_change.run(config.default as u8);
         }
     };
 
     view! {
-        <div class="space-y-4 p-4 border border-gray-200 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 shadow-sm">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Filtri Immagine</h3>
-            <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    "Seleziona Filtro"
-                </label>
-                <select
-                    class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-md
-                           bg-white dark:bg-gray-700 text-gray-900 dark:text-white
-                           focus:ring-blue-500 focus:border-blue-500"
-                    on:change=move |ev| {
-                        let idx = event_target_value(&ev).parse::<usize>().unwrap_or(0);
-                        if let Some((filter_type, _)) = FILTER_OPTIONS.get(idx) {
-                            handle_filter_change(*filter_type);
-                        }
-                    }
-                >
-                    {FILTER_OPTIONS
-                        .iter()
-                        .enumerate()
-                        .map(|(idx, (filter_type, emoji))| {
-                            let is_selected = move || { active_filter.get() == Some(*filter_type) };
-                            view! {
-                                <option value=idx selected=is_selected>
-                                    {format!("{} {}", emoji, filter_name_ita(filter_type))}
-                                </option>
-                            }
-                        })
-                        .collect::<Vec<_>>()}
-                </select>
-            </div>
+        <div class="card bg-base-100 shadow-md mb-4">
+            <div class="card-body p-4">
+                <h2 class="card-title text-lg mb-4">"Image Filters"</h2>
 
-            {move || {
-                let current_filter = active_filter.get();
-                match current_filter {
-                    Some(filter) => {
-                        match FilterConfig::for_filter(&filter) {
-                            Some(config) => {
+                // Filter Selection
+                <div class="form-control w-full mb-4">
+                    <label class="label">
+                        <span class="label-text">"Select Filter"</span>
+                    </label>
+                    <select
+                        class="select select-bordered w-full"
+                        on:change=move |ev| {
+                            let value = event_target_value(&ev);
+                            if let Ok(filter_index) = value.parse::<usize>() {
+                                if filter_index < FILTER_OPTIONS.len() {
+                                    let (filter, _) = FILTER_OPTIONS[filter_index];
+                                    handle_filter_change(filter);
+                                }
+                            }
+                        }
+                    >
+                        {FILTER_OPTIONS
+                            .iter()
+                            .enumerate()
+                            .map(|(index, (filter, emoji))| {
+                                let filter_name = filter_name_english(filter);
                                 view! {
-                                    <div class="space-y-2">
-                                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            "Intensità: "
-                                            <span class="font-bold">
-                                                {move || {
-                                                    format!("{:.1}{}", intensity.get() as f64, config.unit)
-                                                }}
-                                            </span>
-                                        </label>
-                                        <input
-                                            type="range"
-                                            class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer"
-                                            min=config.min
-                                            max=config.max
-                                            step=config.step
-                                            value=move || intensity.get() as f64
-                                            on:input=move |ev| {
-                                                let value = event_target_value(&ev)
-                                                    .parse::<f64>()
-                                                    .unwrap_or(config.default) as u8;
-                                                on_intensity_change.run(value);
-                                            }
-                                        />
-                                        <div class="flex justify-between text-xs text-gray-500 dark:text-gray-400">
-                                            <span>{format!("{}{}", config.min, config.unit)}</span>
-                                            <span>{format!("{}{}", config.max, config.unit)}</span>
+                                    <option
+                                        value=index
+                                        selected=move || active_filter.get() == Some(*filter)
+                                    >
+                                        {format!("{emoji} {filter_name}")}
+                                    </option>
+                                }
+                            })
+                            .collect_view()}
+                    </select>
+                </div>
+
+                // Intensity Control
+                {move || {
+                    let current_filter = active_filter.get();
+                    match current_filter {
+                        Some(filter) => {
+                            match FilterConfig::for_filter(&filter) {
+                                Some(config) => {
+                                    view! {
+                                        <div class="space-y-2">
+                                            <label class="block text-sm font-medium text-base-content">
+                                                "Intensity: "
+                                                <span class="font-bold">
+                                                    {move || {
+                                                        format!("{:.1}{}", intensity.get() as f64, config.unit)
+                                                    }}
+                                                </span>
+                                            </label>
+                                            <input
+                                                type="range"
+                                                class="range range-primary w-full"
+                                                min=config.min
+                                                max=config.max
+                                                step=config.step
+                                                value=move || intensity.get() as f64
+                                                on:input=move |ev| {
+                                                    let value = event_target_value(&ev)
+                                                        .parse::<f64>()
+                                                        .unwrap_or(config.default) as u8;
+                                                    on_intensity_change.run(value);
+                                                }
+                                            />
+                                            <div class="flex justify-between text-xs text-base-content/70">
+                                                <span>{format!("{}{}", config.min, config.unit)}</span>
+                                                <span>{format!("{}{}", config.max, config.unit)}</span>
+                                            </div>
                                         </div>
-                                    </div>
+                                    }
+                                        .into_any()
                                 }
-                                    .into_any()
-                            }
-                            None => {
-                                view! {
-                                    <div class="text-sm text-gray-600 dark:text-gray-400">
-                                        <p>
-                                            "This filter does not require intensity adjustments."
-                                        </p>
-                                    </div>
+                                None => {
+                                    view! {
+                                        <div class="text-sm text-base-content/70">
+                                            <p>"This filter does not require intensity adjustments."</p>
+                                        </div>
+                                    }
+                                        .into_any()
                                 }
-                                    .into_any()
                             }
                         }
+                        None => view! { <div></div> }.into_any(),
                     }
-                    None => view! { <div></div> }.into_any(),
-                }
-            }}
+                }}
 
-            <button
-                class="w-full px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700 transition-colors"
-                on:click=move |_| {
-                    set_active_filter.set(Some(FilterType::None));
-                    on_filter_change.run(FilterType::None);
-                    on_intensity_change.run(0);
-                }
-            >
-                "🔄 Reimposta Filtri"
-            </button>
+                // Reset Button
+                <div class="card-actions justify-end mt-4">
+                    <button
+                        class="btn btn-error btn-md normal-case w-full sm:w-40"
+                        on:click=move |_| {
+                            set_active_filter.set(None);
+                            on_filter_change.run(FilterType::None);
+                            on_intensity_change.run(0);
+                        }
+                    >
+                        <span class="mr-2">"🔄"</span>
+                        <span>"Reset Filters"</span>
+                    </button>
+                </div>
+            </div>
         </div>
     }
 }

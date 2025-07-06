@@ -1,23 +1,25 @@
 <div align="center">
-  <img src="public/logo.png" alt="WASM Image Studio Logo" width="200" style="margin-bottom: 5px;">
-  <h1>WA-RS Image Studio</h1>
+  <img src="./public/logo.png" alt="WASM Image Studio Logo" width="200" style="margin-bottom: 5px;">
+  <h1>WASM Image Studio</h1>
   <p>
-    <strong>Web-based image processing application built with Rust, WebAssembly, and Leptos</strong>
+    <strong>Web-based image processing application built with Rust, WebAssembly, Leptos, and DaisyUI</strong>
   </p>
   <p>
     <a href="#features">Features</a> •
+    <a href="#tech-stack">Tech Stack</a> •
     <a href="#getting-started">Getting Started</a> •
-    <a href="#development">Development</a> •
-    <a href="#license">License</a>
+    <a href="#development">Development</a>
   </p>
 </div>
 
 ## 🖼️ Overview
 
-WA-RS Image Studio is a high-performance web application for applying various image filters and effects in real-time. Built with Rust and compiled to WebAssembly, it delivers near-native performance directly in your browser. The application features an intuitive drag-and-drop interface, real-time filter previews, and the ability to export your edited images.
+WASM Image Studio is a high-performance web application for applying various image filters and effects in real-time. Built with Rust and compiled to WebAssembly, it delivers near-native performance directly in your browser. The application features an intuitive drag-and-drop interface, real-time filter previews, and the ability to export your edited images.
 
 ## ✨ Features
 
+- **Modern UI** - Clean, responsive interface built with DaisyUI and Tailwind CSS
+- **Dark/Light Mode** - Toggle between themes with a single click
 - **Drag & Drop Interface** - Easily upload images by dragging and dropping them onto the canvas
 - **Real-time Filter Previews** - See changes instantly as you adjust filter settings
 - **Multiple Filter Types**
@@ -33,15 +35,26 @@ WA-RS Image Studio is a high-performance web application for applying various im
   - Sharpen
 - **Adjustable Intensity** - Fine-tune each filter with precision controls
 - **Responsive Design** - Works on both desktop and mobile devices
-- **Export Functionality** - Save your edited images in high quality
+- **Export Functionality** - Save your edited images in multiple formats (PNG, JPEG, WEBP)
+- **Accessible** - Built with accessibility in mind
+
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: [Leptos](https://leptos.dev/) (v0.8) - Full-stack web framework for Rust
+- **UI Components**: [DaisyUI](https://daisyui.com/) (v4.12.0) - Clean, customizable component library
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) (v3.4.3) - Utility-first CSS framework
+- **Image Processing**: `photon-rs` - High-performance image processing in Rust
+- **Build Tool**: [Trunk](https://trunkrs.dev/) - WASM web application bundler
+- **Language**: Rust with WebAssembly for near-native performance
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- [Rust](https://www.rust-lang.org/tools/install) (latest stable version)
-- [Node.js](https://nodejs.org/) (v16 or later)
+- [Rust](https://www.rust-lang.org/tools/install) (latest stable version, 1.70+ recommended)
+- [Node.js](https://nodejs.org/) (v18 or later)
 - [Trunk](https://trunkrs.dev/) (Rust WASM web application bundler)
+- [wasm-bindgen](https://rustwasm.github.io/wasm-bindgen/) (for WebAssembly interop)
 
 ### Installation
 
@@ -56,37 +69,68 @@ WA-RS Image Studio is a high-performance web application for applying various im
    rustup target add wasm32-unknown-unknown
    ```
 
-3. Install Trunk:
+3. Install Trunk and wasm-bindgen:
    ```bash
    cargo install trunk wasm-bindgen-cli
    ```
 
-4. Install JavaScript dependencies:
+4. Install Node.js dependencies:
    ```bash
    npm install
    ```
 
-## 🛠️ Development
+## 🚧 Development
 
 ### Running Locally
 
-Start the development server:
+Start the development server with hot-reloading:
 
 ```bash
 trunk serve --open
 ```
 
-This will start the development server and open the application in your default browser. The page will automatically reload if you make changes to the source files.
+The application will be available at `http://localhost:3000` and will automatically reload when you make changes.
 
 ### Building for Production
 
-To create a production build:
+Create an optimized production build:
 
 ```bash
 trunk build --release
 ```
 
-The build artifacts will be stored in the `dist/` directory.
+The production-ready files will be in the `dist/` directory.
+
+### Project Structure
+
+```
+wasm-image-studio-rs/
+├── src/
+│   ├── components/     # Reusable UI components
+│   │   ├── drag_drop.rs      # File upload component
+│   │   ├── filter_controls.rs # Filter controls panel
+│   │   ├── image_canvas.rs    # Image display and processing
+│   │   └── export_panel.rs    # Image export controls
+│   │
+│   ├── pages/          # Application pages
+│   │   └── home.rs     # Main application page
+│   │
+│   ├── filters/        # Image filter implementations
+│   ├── lib.rs         # Library root
+│   └── main.rs        # Application entry point
+│
+├── public/            # Static assets
+├── styles/            # Global styles
+└── index.html         # Main HTML entry point
+```
+
+### Styling Guidelines
+
+- Use Tailwind CSS utility classes for styling
+- Follow DaisyUI component patterns where possible
+- Maintain consistent spacing using Tailwind's spacing scale
+- Use semantic HTML elements with appropriate ARIA attributes
+- Follow the project's color scheme defined in `tailwind.config.js`
 
 ### Testing
 
@@ -96,7 +140,7 @@ Run the test suite with:
 cargo test
 ```
 
-For browser-based tests:
+For end-to-end testing:
 ```bash
 wasm-pack test --headless --firefox
 ```
