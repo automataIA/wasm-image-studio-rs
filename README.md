@@ -24,7 +24,7 @@ WASM Image Studio is a high-performance, web-based application for applying a va
 - **Adjustable Intensity**: Fine-tune each filter with precision controls
 - **Responsive Design**: Works on desktop and mobile
 - **Export**: Save edited images as PNG, JPEG, or WEBP
-- **Accessibility**: Built with accessible design in mind
+- **Accessibility**: Built with accessible design in the mind
 
 ## 🚀 Deployment
 
