@@ -1,8 +1,0 @@
-# File di sistema
-.DS_Store
-Thumbs.db
-desktop.ini
-node_modules/
-target/
-dist/
-info/
