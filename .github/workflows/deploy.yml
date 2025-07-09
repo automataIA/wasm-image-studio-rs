@@ -46,9 +46,16 @@ jobs:
       run: |
         trunk build --release
         
-    - name: Deploy to gh-pages
-      uses: JamesIves/github-pages-deploy-action@v4
-      with:
-        folder: dist
-        branch: gh-pages
-        clean: true
+    - name: Create docs directory
+      run: |
+        rm -rf docs
+        mkdir -p docs
+        cp -r dist/* docs/
+        
+    - name: Commit and push changes
+      run: |
+        git config --global user.name "GitHub Actions"
+        git config --global user.email "actions@github.com"
+        git add docs
+        git commit -m "Update GitHub Pages site" || echo "No changes to commit"
+        git push origin main
