@@ -49,6 +49,7 @@ pub fn App() -> impl IntoView {
         <Router>
             <Routes fallback=|| view! { <NotFound /> }>
                 <Route path=path!("/") view=Home />
+                <Route path=path!("/wasm-image-studio-rs/") view=Home />
                 <Route path=path!("/404.html") view=NotFound />
             </Routes>
         </Router>
@@ -63,7 +64,7 @@ pub fn NotFound() -> impl IntoView {
                 <div class="max-w-md">
                     <h1 class="text-5xl font-bold">"404"</h1>
                     <p class="py-6">"Pagina non trovata"</p>
-                    <a href="/" class="btn btn-primary">
+                    <a href="/wasm-image-studio-rs/" class="btn btn-primary">
                         "Torna alla Home"
                     </a>
                 </div>
