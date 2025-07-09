@@ -46,15 +46,9 @@ jobs:
       run: |
         trunk build --release
         
-    - name: Prepare deployment
-      run: |
-        mkdir -p wasm-image-studio-rs
-        cp -r dist/* wasm-image-studio-rs/
-        
     - name: Deploy to gh-pages
       uses: JamesIves/github-pages-deploy-action@v4
       with:
-        folder: wasm-image-studio-rs
+        folder: dist
         branch: gh-pages
-        clean: false
-        target-folder: "wasm-image-studio-rs"
+        clean: true
