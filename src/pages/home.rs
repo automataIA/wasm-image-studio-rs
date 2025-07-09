@@ -161,7 +161,7 @@ pub fn Home() -> impl IntoView {
                 <div class="flex-1"></div>
                 {}
                 <div class="flex items-center justify-center flex-1">
-                    <img src="/logo.png" alt="WASM Image Studio Logo" class="h-12 w-12 mr-4" />
+                    <img src="logo.png" alt="WASM Image Studio Logo" class="h-12 w-12 mr-4" />
                     <h1 class="text-3xl font-bold">"WASM Image Studio"</h1>
                 </div>
                 <div class="flex-1 flex justify-end">

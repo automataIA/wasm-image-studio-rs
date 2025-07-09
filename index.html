@@ -5,35 +5,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>WASM Image Studio</title>
-
-  <!-- Tailwind CSS via Vite -->
   <link data-trunk rel="tailwind-css" href="input.css" />
-
-  <!-- Include favicon -->
   <link data-trunk rel="icon" href="public/favicon.ico" />
-
-  <!-- Include static files -->
   <link data-trunk rel="copy-file" href="public/logo.png" />
-
-  <!-- Google Fonts - Inter -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-  <!-- wasm-bindgen support -->
-  <link data-trunk rel="rust" data-wasm-opt="z" data-weak-refs />
-
-  <style>
-    :root {
-      --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-    }
-
-    body {
-      @apply min-h-screen bg-base-200 text-base-content;
-    }
-
-    #root {
-      @apply min-h-screen flex flex-col;
-    }
-  </style>
 </head>
 
 <body class="min-h-screen">

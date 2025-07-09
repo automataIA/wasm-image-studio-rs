@@ -1,33 +1,99 @@
 <div align="center">
   <img src="./public/logo.png" alt="WASM Image Studio Logo" width="200" style="margin-bottom: 5px;">
   <h1>WASM Image Studio</h1>
-  <p>
-    <strong>Web-based image processing application built with Rust, WebAssembly, Leptos, and DaisyUI</strong>
-  </p>
+  <p><strong>Web-based image processing studio powered by Rust, WebAssembly, Leptos, and DaisyUI</strong></p>
   <p>
     <a href="#features">Features</a> •
     <a href="#tech-stack">Tech Stack</a> •
     <a href="#getting-started">Getting Started</a> •
-    <a href="#development">Development</a>
+    <a href="#contributing">Contributing</a>
   </p>
 </div>
 
 ## 🖼️ Overview
 
-WASM Image Studio is a high-performance web application for applying various image filters and effects in real-time. Built with Rust and compiled to WebAssembly, it delivers near-native performance directly in your browser. The application features an intuitive drag-and-drop interface, real-time filter previews, and the ability to export your edited images.
+WASM Image Studio is a high-performance, web-based application for applying a variety of image filters and effects in real time. Built with Rust and compiled to WebAssembly, it delivers near-native performance in your browser. The app features a modern drag-and-drop interface, instant filter previews, and export capabilities for your edited images.
 
 ## ✨ Features
 
-- **Modern UI** - Clean, responsive interface built with DaisyUI and Tailwind CSS
-- **Dark/Light Mode** - Toggle between themes with a single click
-- **Drag & Drop Interface** - Easily upload images by dragging and dropping them onto the canvas
-- **Real-time Filter Previews** - See changes instantly as you adjust filter settings
-- **Multiple Filter Types**
-  - Grayscale
-  - Sepia
-  - Blur
-  - Brightness adjustment
-  - Contrast adjustment
+- **Modern UI**: Clean, responsive interface built with DaisyUI and Tailwind CSS
+- **Dark/Light Mode**: Toggle between themes
+- **Drag & Drop**: Upload images by dragging and dropping onto the canvas
+- **Real-time Filter Previews**: Instantly see changes as you adjust settings
+- **Multiple Filter Types**: Grayscale, Sepia, Blur, Brightness, Contrast, Hue rotation, Saturation, Invert, Edge detection, Sharpen
+- **Adjustable Intensity**: Fine-tune each filter with precision controls
+- **Responsive Design**: Works on desktop and mobile
+- **Export**: Save edited images as PNG, JPEG, or WEBP
+- **Accessibility**: Built with accessible design in mind
+
+## 🚀 Deployment
+
+Deployment to GitHub Pages is automated. Every push to the `main` branch will trigger deployment to the `gh-pages` branch in the `wasm-image-studio-rs/` directory.
+
+### Manual Deployment
+
+1. Build the project:
+   ```bash
+   trunk build --release
+   ```
+2. Copy the build output to the deployment directory:
+   ```bash
+   mkdir -p wasm-image-studio-rs
+   cp -r dist/* wasm-image-studio-rs/
+   ```
+3. Switch to the `gh-pages` branch and copy the files:
+   ```bash
+   git checkout gh-pages
+   git pull
+   rm -rf wasm-image-studio-rs
+   mkdir -p wasm-image-studio-rs
+   cp -r ../dist/* wasm-image-studio-rs/
+   git add wasm-image-studio-rs
+   git commit -m "Update wasm-image-studio-rs"
+   git push origin gh-pages
+   ```
+
+The app will be available at: `https://automataia.github.io/wasm-image-studio-rs/`
+
+### Local Development
+
+To run locally:
+```bash
+trunk serve --open
+```
+
+## 🛠️ Tech Stack
+
+- **Frontend**: Rust + WebAssembly
+- **Framework**: Leptos
+- **Styling**: Tailwind CSS, DaisyUI
+- **Image Processing**: photon-rs
+- **Build Tool**: Trunk
+1. **Prerequisites**
+   - [Rust](https://www.rust-lang.org/tools/install)
+   - [Trunk](https://trunkrs.dev/)
+   - [wasm32-unknown-unknown target](https://rustwasm.github.io/wasm-bindgen/whirlwind-tour/basic-optimizations.html)
+
+2. **Installation**
+   ```bash
+   # Install Trunk
+   cargo install trunk wasm-bindgen-cli
+   
+   # Add WebAssembly target
+   rustup target add wasm32-unknown-unknown
+   ```
+
+3. **Development**
+   ```bash
+   # Start development server
+   trunk serve --open
+   ```
+
+4. **Build for Production**
+   ```bash
+   trunk build --release
+   ```
+
   - Hue rotation
   - Saturation adjustment
   - Invert colors
@@ -197,95 +263,15 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 │   │   └── mod.rs           # Components module exports
 │   │
 │   ├── filters/        # Image processing filters
-│   │   ├── core.rs     # Core filter implementations
-│   │   ├── mod.rs      # Filters module exports
-│   │   └── wrappers.rs # WebAssembly bindings
-│   │
-│   ├── pages/          # Application pages
-│   │   ├── home.rs     # Main application page
-│   │   ├── not_found.rs # 404 error page
-│   │   └── mod.rs      # Pages module exports
-│   │
-│   ├── utils/          # Utility functions
-│   │   ├── memory.rs   # Memory management utilities
-│   │   └── mod.rs      # Utils module exports
-│   │
-│   ├── lib.rs          # Library entry point
-│   └── main.rs         # Application entry point
-
-# Static Assets
-├── public/             # Static assets
-│   ├── favicon.ico     # Browser tab icon
-│   └── logo.png        # Application logo
-
-# Build Output
-├── target/             # Compiled artifacts (gitignored)
-└── dist/               # Production build output (gitignored)
-├── src/ ----------------
-│   ├── components/     # Reusable UI components -------------
-│   │   ├── app_layout.rs      # Main application layout with header and content area
-│   │   ├── counter_btn.rs     # Example counter button component (demo)
-│   │   ├── drag_drop.rs       # Drag and drop file upload component
-│   │   ├── export_panel.rs    # Controls for exporting processed images
-│   │   ├── filter_controls.rs # UI controls for adjusting filter parameters
-│   │   ├── image_canvas.rs    # Canvas component for displaying and processing images
-│   │   └── mod.rs # Module exports for components
-│   │
-│   ├── filters/        # Image processing functionality -----
-│   │   ├── core.rs     # Core filter implementations using photon-rs
-│   │   ├── wrappers.rs # WebAssembly bindings for JavaScript interop
-│   │   └── mod.rs      # Filter type definitions and public API
-│   │
-│   ├── pages/          # Application pages and routing ------
-│   │   ├── home.rs     # Main application page
-│   │   ├── not_found.rs# 404 error page
-│   │   └── mod.rs      # Page routing and exports
-│   │
-│   ├── utils/          # Utility functions ------------------
-│   │   ├── memory.rs   # Memory management utilities
-│   │   └── mod.rs      # Utility module exports
-│   │
-│   ├── lib.rs          # Library entry point
-│   └── main.rs         # Application entry point
-│
-├── tailwind.config.js  # Tailwind CSS configuration
-└── Trunk.toml          # Trunk (WASM bundler) configuration
-```
-
-### Key Components Breakdown
-
-- **src/components/**: Contains reusable UI components built with Leptos
-  - `drag_drop.rs`: Handles file uploads via drag-and-drop or file selection
-  - `filter_controls.rs`: Provides sliders and controls for adjusting filter parameters
-  - `image_canvas.rs`: Renders and processes images using HTML5 Canvas
-  - `export_panel.rs`: Manages image export functionality and format options
-
-- **src/filters/**: Implements image processing operations
-  - `core.rs`: Contains the actual filter implementations using photon-rs
-  - `wrappers.rs`: Provides WebAssembly bindings for JavaScript interop
-  - Supports various filters: grayscale, sepia, blur, brightness, contrast, etc.
-
-- **src/pages/**: Handles application routing and page layouts
-  - `home.rs`: Main application interface with the image editor
-  - `not_found.rs`: 404 error page
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
-- Built with [Leptos](https://leptos.dev/), a full-stack web framework for Rust
-- Powered by [photon-rs](https://github.com/silvia-odwyer/photon) for image processing
-- Styled with [Tailwind CSS](https://tailwindcss.com/)
-- Bundled with [Trunk](https://trunkrs.dev/)
+- [Leptos](https://leptos.dev/) — Rust full-stack web framework
+- [photon-rs](https://github.com/silvia-odwyer/photon) — Image processing
+- [Tailwind CSS](https://tailwindcss.com/) — Styling
+- [Trunk](https://trunkrs.dev/) — WASM bundler

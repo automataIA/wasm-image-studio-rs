@@ -101,7 +101,7 @@ pub fn ExportPanel(
                         class=move || {
                             let base = "btn btn-primary btn-md normal-case w-full sm:w-40";
                             if is_exporting.get() {
-                                format!("{} loading", base)
+                                format!("{base} loading")
                             } else {
                                 base.to_string()
                             }

@@ -1,0 +1,46 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: Setup Rust
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        targets: wasm32-unknown-unknown
+        components: rust-src
+        
+    - name: Install Trunk
+      uses: jetli/trunk-action@v0.4.0
+      with:
+        version: 'latest'
+        
+    - name: Build
+      run: |
+        trunk build --release
+        
+    - name: Prepare deployment
+      run: |
+        mkdir -p wasm-image-studio-rs
+        cp -r dist/* wasm-image-studio-rs/
+        
+    - name: Deploy to gh-pages
+      uses: JamesIves/github-pages-deploy-action@v4
+      with:
+        folder: wasm-image-studio-rs
+        branch: gh-pages
+        clean: false
+        target-folder: "wasm-image-studio-rs"
