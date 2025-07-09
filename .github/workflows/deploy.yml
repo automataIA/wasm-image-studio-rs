@@ -28,6 +28,10 @@ jobs:
         npm install -D tailwindcss postcss autoprefixer
         npx tailwindcss init -p
         
+    - name: Process TailwindCSS
+      run: |
+        npx tailwindcss -i input.css -o style.css
+        
     - name: Setup Rust
       uses: dtolnay/rust-toolchain@stable
       with:
@@ -42,19 +46,16 @@ jobs:
       with:
         version: 'latest'
         
-    - name: Install Trunk plugins
-      run: |
-        cargo install trunk-plugin-tailwind
-        
     - name: Build
       run: |
-        trunk build --release
+        trunk build --release --public-url "/wasm-image-studio-rs/"
         
     - name: Create docs directory
       run: |
         rm -rf docs
         mkdir -p docs
         cp -r dist/* docs/
+        touch docs/.nojekyll
         
     - name: Commit and push changes
       run: |
